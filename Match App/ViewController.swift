@@ -29,14 +29,27 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CardCell", for: indexPath) as! CardCollectionViewCell
+        
+        // Get the current card and set its front image on the UI
+        let card = cardArray[indexPath.row]
+        cell.setCard(card)
         
         return cell
     }
     
-//    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        <#code#>
-//    }
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let cell = collectionView.cellForItem(at: indexPath) as! CardCollectionViewCell
+        
+        let card = cardArray[indexPath.row]
+        if !card.isFlipped {
+            cell.flipFront()
+            card.isFlipped = true
+        } else {
+            cell.flipBack()
+            card.isFlipped = false
+        }
+    }
 
 }
 

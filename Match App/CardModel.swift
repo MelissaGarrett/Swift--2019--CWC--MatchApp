@@ -12,7 +12,7 @@ class CardModel {
     func getCards() -> [Card] {
         var generatedCardsArray = [Card]()
         
-        // create 8 pairs of cards, 1-13
+        // create 8 pairs of cards, 1-13 (so they will match with the image names)
         for _ in 1...8 {
             let randomNumber = arc4random_uniform(13) + 1
             

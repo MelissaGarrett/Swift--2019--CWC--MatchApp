@@ -13,6 +13,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     var model = CardModel()
     var cardArray = [Card]()
+    
+    var firstFlippedCardIndex: IndexPath?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,15 +42,50 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let cell = collectionView.cellForItem(at: indexPath) as! CardCollectionViewCell
-        
         let card = cardArray[indexPath.row]
-        if !card.isFlipped {
+        
+        if !card.isFlipped && !card.isMatched {
             cell.flipFront()
             card.isFlipped = true
-        } else {
-            cell.flipBack()
-            card.isFlipped = false
+            
+            // Determine if this is the 1st or 2nd card that was flipped
+            if firstFlippedCardIndex == nil {
+                firstFlippedCardIndex = indexPath
+            } else {
+                checkForMatches(indexPath)
+            }
         }
+    }
+    
+    func checkForMatches(_ secondFlippedCardIndex: IndexPath) {
+        let firstCardCell = collectionView.cellForItem(at: firstFlippedCardIndex!) as? CardCollectionViewCell
+        let secondCardCell = collectionView.cellForItem(at: secondFlippedCardIndex) as? CardCollectionViewCell
+        
+        let firstCard = cardArray[firstFlippedCardIndex!.row]
+        let secondCard = cardArray[secondFlippedCardIndex.row]
+        
+        if firstCard.imageName == secondCard.imageName {
+            firstCard.isMatched = true
+            secondCard.isMatched = true
+            
+            firstCardCell?.remove()
+            secondCardCell?.remove()
+        } else {
+            firstCard.isFlipped = false
+            secondCard.isFlipped = false
+            
+            firstCardCell?.flipBack()
+            secondCardCell?.flipBack()
+        }
+        
+        // Reload the cell of the 1st card if it's nil (a match was made)
+        // (To aid reusable cells when scrolling)
+        if firstCardCell == nil {
+            collectionView.reloadItems(at: [firstFlippedCardIndex!])
+        }
+        
+        // Reset so user can start again with two more cards
+        firstFlippedCardIndex = nil
     }
 
 }

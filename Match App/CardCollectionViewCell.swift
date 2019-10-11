@@ -17,6 +17,17 @@ class CardCollectionViewCell: UICollectionViewCell {
     func setCard(_ card: Card) {
         self.card = card
         
+        // To aid reusable cells when scrolling back and forth in the collection view
+        if card.isMatched { // make image views invisible if card has been matched
+            backImageView.alpha = 0
+            frontImageView.alpha = 0
+            
+            return
+        } else { // make image views visible if card hasn't been matched
+            backImageView.alpha = 1
+            frontImageView.alpha = 1
+        }
+        
         frontImageView.image = UIImage(named: card.imageName)
         
         // To make sure the correct image is on top in the displayed cell
@@ -35,6 +46,17 @@ class CardCollectionViewCell: UICollectionViewCell {
     
     // Flip card from front image to back image
     func flipBack() {
-        UIView.transition(from: frontImageView, to: backImageView, duration: 0.3, options: [.transitionFlipFromRight, .showHideTransitionViews], completion: nil)
+        // Add a delay of 1/2 a second before flipping the cards back (after no match was found)
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
+            UIView.transition(from: self.frontImageView, to: self.backImageView, duration: 0.3, options: [.transitionFlipFromRight, .showHideTransitionViews], completion: nil)
+        }
+    }
+    
+    // Remove both image views from being visible
+    func remove() {
+        backImageView.alpha = 0
+        
+        UIView.animate(withDuration: 0.3, delay: 0.5, options: .curveEaseOut, animations: {                    self.frontImageView.alpha = 0
+        }, completion: nil)
     }
 }

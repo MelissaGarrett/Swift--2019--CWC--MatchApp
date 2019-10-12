@@ -9,12 +9,21 @@
 import UIKit
 
 class ViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+    
+    @IBOutlet var timerLabel: UILabel!
+    
     @IBOutlet var collectionView: UICollectionView!
     
     var model = CardModel()
     var cardArray = [Card]()
     
     var firstFlippedCardIndex: IndexPath?
+    
+    var timer: Timer?
+    var milliseconds: Float = 10000 // 10 seconds
+    
+    var alertTitle = ""
+    var message = ""
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,6 +33,12 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         collectionView.delegate = self
         collectionView.dataSource = self
+        
+        // Create timer object; Timer calls timerElapsed() every millisecond
+        timer = Timer.scheduledTimer(timeInterval: 0.001, target: self, selector: #selector(timerElapsed), userInfo: nil, repeats: true)
+        
+        // So timer doesn't stop when the user scrolls the app
+        RunLoop.main.add(timer!, forMode: .common)
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -41,6 +56,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // To prevent user from selecting cards if time has run out
+        if milliseconds <= 0 {
+            return
+        }
+        
         let cell = collectionView.cellForItem(at: indexPath) as! CardCollectionViewCell
         let card = cardArray[indexPath.row]
         
@@ -70,6 +90,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             
             firstCardCell?.remove()
             secondCardCell?.remove()
+            
+            checkGameEnded()
         } else {
             firstCard.isFlipped = false
             secondCard.isFlipped = false
@@ -87,6 +109,60 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         // Reset so user can start again with two more cards
         firstFlippedCardIndex = nil
     }
-
+    
+    func checkGameEnded() {
+        var hasWon = true
+        
+        for card in cardArray {
+            if card.isMatched == false { // not all cards have been matched
+                hasWon = false
+                break
+            }
+        }
+        
+        if hasWon {
+            if milliseconds > 0 {
+                timer?.invalidate()
+            }
+            
+            alertTitle = "Congratulations!"
+            message = "You've won"
+        } else {
+            if milliseconds > 0 { // still some time left
+                return
+            }
+            
+            alertTitle = "Game Over!"
+            message = "You've lost"
+        }
+        
+        showAlert(alertTitle, message)
+    }
+    
+    // Show alert when game is over
+    func showAlert(_ alertTitle: String, _ message: String) {
+        let alert = UIAlertController(title: alertTitle, message: message, preferredStyle: .alert)
+        let action = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alert.addAction(action)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    // Update the UI label with every tick of the timer
+    @objc func timerElapsed() {
+        milliseconds -= 1
+        
+        // Convert to seconds
+        let seconds = String(format: "%.2f", milliseconds / 1000)
+        timerLabel.text = "Time Remaining: \(seconds)"
+        
+        // Stop the timer
+        if milliseconds <= 0 {
+            timer?.invalidate()
+            timerLabel.textColor = UIColor.red
+            
+            checkGameEnded()
+        }
+    }
 }
 

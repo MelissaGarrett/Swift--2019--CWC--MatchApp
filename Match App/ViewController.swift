@@ -20,11 +20,11 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
     var firstFlippedCardIndex: IndexPath?
     
     var timer: Timer?
-    var milliseconds: Float = 10000 // 10 seconds
+    var milliseconds: Float = 30000 // 30 seconds
     
     var alertTitle = ""
     var message = ""
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -39,6 +39,10 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         // So timer doesn't stop when the user scrolls the app
         RunLoop.main.add(timer!, forMode: .common)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        SoundManager.playSound(.shuffle)
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -66,6 +70,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         
         if !card.isFlipped && !card.isMatched {
             cell.flipFront()
+            SoundManager.playSound(.flip)
+            
             card.isFlipped = true
             
             // Determine if this is the 1st or 2nd card that was flipped
@@ -85,6 +91,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
         let secondCard = cardArray[secondFlippedCardIndex.row]
         
         if firstCard.imageName == secondCard.imageName {
+            SoundManager.playSound(.match)
+            
             firstCard.isMatched = true
             secondCard.isMatched = true
             
@@ -93,6 +101,8 @@ class ViewController: UIViewController, UICollectionViewDelegate, UICollectionVi
             
             checkGameEnded()
         } else {
+            SoundManager.playSound(.nomatch)
+            
             firstCard.isFlipped = false
             secondCard.isFlipped = false
             
